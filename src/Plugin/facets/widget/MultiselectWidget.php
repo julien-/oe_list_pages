@@ -153,7 +153,6 @@ class MultiselectWidget extends ListPagesWidgetBase implements ContainerFactoryP
    */
   public function getDefaultValuesLabel(FacetInterface $facet, ListSourceInterface $list_source, ListPresetFilter $filter): string {
     $filter_operators = ListPresetFilter::getOperators();
-
     $id = $this->multiselectPluginManager->getPluginIdForFacet($facet, $list_source);
     if (!$id) {
       return $filter_operators[$filter->getOperator()] . ': ' . parent::getDefaultValuesLabel($facet, $list_source, $filter);
@@ -175,6 +174,7 @@ class MultiselectWidget extends ListPagesWidgetBase implements ContainerFactoryP
    */
   public function build(FacetInterface $facet) {
     $results = $facet->getResults();
+//    kint($results);
 
     $options = $this->transformResultsToOptions($results);
 

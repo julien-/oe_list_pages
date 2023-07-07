@@ -57,6 +57,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    die(__FUNCTION__);
     return new static(
       $configuration,
       $plugin_id,
@@ -71,6 +72,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public function getDefaultValues(): array {
+    kint(__FUNCTION__);
     $field_definition = $this->getFacetFieldDefinition($this->configuration['facet'], $this->configuration['list_source']);
     if (empty($field_definition)) {
       return [];
@@ -90,6 +92,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public function buildDefaultValueForm(array &$form = [], FormStateInterface $form_state = NULL, ListPresetFilter $preset_filter = NULL): array {
+    kint(__FUNCTION__);
     $field_definition = $this->getFacetFieldDefinition($this->configuration['facet'], $this->configuration['list_source']);
     if (empty($field_definition)) {
       return [];
@@ -114,6 +117,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public function prepareDefaultFilterValues(array $values, array $form, FormStateInterface $form_state): array {
+    kint(__FUNCTION__);
     // For the entity autocomplete element, we need to extract the IDs from the
     // submitted #value element which contains also the title and the
     // parenthesis, etc.
@@ -129,6 +133,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public function getDefaultValuesLabel(): string {
+    kint(__FUNCTION__);
     $field_definition = $this->getFacetFieldDefinition($this->configuration['facet'], $this->configuration['list_source']);
     if (empty($field_definition)) {
       return '';
@@ -157,6 +162,7 @@ class EntityReferenceField extends MultiSelectFilterFieldPluginBase {
    * {@inheritdoc}
    */
   public function getFieldValues(FieldItemListInterface $items): array {
+    kint(__FUNCTION__);
     $values = $items->getValue();
     return array_column($values, 'target_id');
   }
