@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\oe_list_pages_link_list_source\FunctionalJavascript;
 
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
 use Drupal\search_api\Entity\Index;
@@ -35,7 +36,6 @@ class ListPageLinkSourceTranslationTest extends ListPagePluginFormTestBase {
     'search_api_db',
     'content_translation',
     'language',
-    'oe_multilingual',
   ];
 
   /**
@@ -44,7 +44,9 @@ class ListPageLinkSourceTranslationTest extends ListPagePluginFormTestBase {
   protected function setUp(): void {
     parent::setUp();
 
+    ConfigurableLanguage::createFromLangcode('fr')->save();
     \Drupal::service('content_translation.manager')->setEnabled('node', 'content_type_one', TRUE);
+    \Drupal::service('kernel')->rebuildContainer();
     \Drupal::service('router.builder')->rebuild();
   }
 
@@ -88,13 +90,13 @@ class ListPageLinkSourceTranslationTest extends ListPagePluginFormTestBase {
     $this->getSession()->getPage()->pressButton('Save');
 
     // In English we see the EN version.
-    $this->assertSession()->pageTextContains('Banana title EN');
+    $this->assertSession()->pageTextContainsOnce('Banana title EN');
 
     // Switch to French and assert we see the translation.
     $link_list = $this->getLinkListByTitle('List page list');
     $this->drupalGet($link_list->toUrl('canonical', ['language' => \Drupal::languageManager()->getLanguage('fr')]));
 
-    $this->assertSession()->pageTextContains('Banana title FR');
+    $this->assertSession()->pageTextContainsOnce('Banana title FR');
     $this->assertSession()->pageTextNotContains('Banana title EN');
   }
 

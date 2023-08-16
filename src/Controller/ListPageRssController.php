@@ -23,8 +23,8 @@ use Drupal\node\NodeInterface;
 use Drupal\oe_list_pages\FacetManipulationTrait;
 use Drupal\oe_list_pages\ListExecutionManagerInterface;
 use Drupal\oe_list_pages\ListPageConfiguration;
-use Drupal\oe_list_pages\ListPageRssAlterEvent;
 use Drupal\oe_list_pages\ListPageEvents;
+use Drupal\oe_list_pages\ListPageRssAlterEvent;
 use Drupal\oe_list_pages\ListPageRssItemAlterEvent;
 use Drupal\oe_list_pages\ListPresetFilter;
 use Drupal\oe_list_pages\ListSourceFactoryInterface;
@@ -211,7 +211,7 @@ class ListPageRssController extends ControllerBase {
 
     // Dispatch event to allow modules to alter the build before being rendered.
     $event = new ListPageRssAlterEvent($build, $node);
-    $this->eventDispatcher->dispatch(ListPageEvents::ALTER_RSS_BUILD, $event);
+    $this->eventDispatcher->dispatch($event, ListPageEvents::ALTER_RSS_BUILD);
     $build = $event->getBuild();
     $cache_metadata = CacheableMetadata::createFromRenderArray($build);
     // Create the response and add the xml type header.
@@ -297,7 +297,7 @@ class ListPageRssController extends ControllerBase {
 
       // Dispatch event to allow to alter the item build before being rendered.
       $event = new ListPageRssItemAlterEvent($result_item, $entity);
-      $this->eventDispatcher->dispatch(ListPageEvents::ALTER_RSS_ITEM_BUILD, $event);
+      $this->eventDispatcher->dispatch($event, ListPageEvents::ALTER_RSS_ITEM_BUILD);
 
       $result_items[] = $event->getBuild();
     }
@@ -360,7 +360,7 @@ class ListPageRssController extends ControllerBase {
     $theme = $this->themeManager->getActiveTheme();
     $cache_metadata->addCacheContexts(['theme']);
     return [
-      'url' => file_create_url($theme->getLogo()),
+      'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($theme->getLogo()),
       'title' => $title,
       'link' => $url->getGeneratedUrl(),
     ];

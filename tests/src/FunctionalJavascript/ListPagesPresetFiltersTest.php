@@ -9,8 +9,8 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\facets\Entity\Facet;
 use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
-use Drupal\oe_list_pages\ListPresetFilter;
 use Drupal\oe_list_pages\DefaultFilterConfigurationBuilder;
+use Drupal\oe_list_pages\ListPresetFilter;
 use Drupal\oe_list_pages\ListSourceFactory;
 use Drupal\oe_list_pages\Plugin\facets\query_type\DateStatus;
 use Drupal\search_api\Entity\Index;
@@ -48,7 +48,7 @@ class ListPagesPresetFiltersTest extends ListPagePluginFormTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'starterkit_theme';
 
   /**
    * Test presence of preset filters configuration in the plugin.
