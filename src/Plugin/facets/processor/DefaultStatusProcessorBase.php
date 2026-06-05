@@ -61,6 +61,16 @@ abstract class DefaultStatusProcessorBase extends ProcessorPluginBase implements
       return;
     }
 
+    // If the facet has been explicitly cleared by the user (via the "cleared"
+    // query parameter), do not re-apply the default value. This lets the
+    // default behave as a real exposed value that can be removed to show all
+    // results, instead of being silently forced back on every clean URL.
+    $query = \Drupal::request()->query->all();
+    $cleared = isset($query['cleared']) && is_array($query['cleared']) ? $query['cleared'] : [];
+    if (in_array($facet->id(), $cleared, TRUE)) {
+      return;
+    }
+
     // Check if there are any other active items in the URL because if there
     // are, we also won't do anything.
     /** @var \Drupal\facets\UrlProcessor\UrlProcessorInterface $url_processor */

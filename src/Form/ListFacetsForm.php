@@ -149,15 +149,32 @@ class ListFacetsForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $current_url = Url::fromRoute('<current>');
+    $source_id = $form_state->get('source_id');
+    $facets = $this->facetsManager->getFacetsByFacetSourceId($source_id);
+
+    // Facets that expose a configured default value (e.g. an upcoming/past
+    // status default). When such a facet ends up without a value we must mark
+    // it as explicitly cleared in the URL, otherwise its default would be
+    // silently re-applied on the resulting clean URL.
+    $default_status_facets = [];
+    foreach ($facets as $facet) {
+      if ($this->facetHasDefaultStatusConfigured($facet)) {
+        $default_status_facets[$facet->id()] = $facet->id();
+      }
+    }
+
     $triggering_element = $form_state->getTriggeringElement();
     if ($triggering_element['#op'] === 'reset') {
+      // Clearing all filters must also override any exposed default value, so
+      // the default is not re-applied on the resulting clean URL.
+      if ($default_status_facets) {
+        $current_url->setOption('query', ['cleared' => array_values($default_status_facets)]);
+      }
       $form_state->setRedirectUrl($current_url);
       return;
     }
 
-    $source_id = $form_state->get('source_id');
     $active_filters = [];
-    $facets = $this->facetsManager->getFacetsByFacetSourceId($source_id);
     /** @var \Drupal\facets\FacetInterface $facet */
     foreach ($facets as $facet) {
       $widget = $facet->getWidgetInstance();
@@ -167,15 +184,51 @@ class ListFacetsForm extends FormBase {
     }
 
     $active_filters = array_filter($active_filters);
+
+    // A default-status facet submitted without a value has been explicitly
+    // cleared by the user and must be flagged as such.
+    $cleared = [];
+    foreach ($default_status_facets as $facet_id) {
+      if (empty($active_filters[$facet_id])) {
+        $cleared[] = $facet_id;
+      }
+    }
+
     if ($active_filters) {
       $url = $this->facetsUrlGenerator->getUrl($active_filters, FALSE);
+      if ($cleared) {
+        $query = $url->getOption('query') ?? [];
+        $query['cleared'] = $cleared;
+        $url->setOption('query', $query);
+      }
       $form_state->setRedirectUrl($url);
       return;
     }
 
-    // If there are no active filters, we redirect to the current URL without
-    // any filters in the URL.
+    // If there are no active filters, we redirect to the current URL, flagging
+    // any exposed default as cleared so it is not re-applied.
+    if ($cleared) {
+      $current_url->setOption('query', ['cleared' => $cleared]);
+    }
     $form_state->setRedirectUrl($current_url);
+  }
+
+  /**
+   * Checks whether a facet exposes a configured default value.
+   *
+   * @param \Drupal\facets\FacetInterface $facet
+   *   The facet.
+   *
+   * @return bool
+   *   TRUE if the facet has a non-empty default status configured.
+   */
+  protected function facetHasDefaultStatusConfigured(FacetInterface $facet): bool {
+    foreach ($facet->getProcessorConfigs() as $config) {
+      if (!empty($config['settings']['default_status'])) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
 }

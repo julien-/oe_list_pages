@@ -270,6 +270,31 @@ class FacetsFormTest extends WebDriverTestBase {
     // None of the Status values are pre-selected.
     $this->assertNull($this->getSession()->getPage()->findField('Status')->find('css', 'option[value="upcoming"]')->getAttribute('selected'));
     $this->assertNull($this->getSession()->getPage()->findField('Status')->find('css', 'option[value="past"]')->getAttribute('selected'));
+
+    // On a clean URL the default is applied again: only the future node shows.
+    $this->drupalGet('/facets-form-test');
+    $assert->pageTextNotContains('the node from the past');
+    $assert->pageTextContains('the node from the future');
+
+    // Clearing the Status without any other active filter must reveal all
+    // nodes instead of silently re-applying the default. The cleared state is
+    // recorded in the URL so it survives the redirect.
+    $this->getSession()->getPage()->findField('Status')->setValue([]);
+    $this->getSession()->getPage()->pressButton('Search');
+    $assert->pageTextContains('the node from the past');
+    $assert->pageTextContains('the node from the future');
+    $this->assertStringContainsString('cleared[0]=' . $facet->id(), urldecode($this->getSession()->getCurrentUrl()));
+    $this->assertNull($this->getSession()->getPage()->findField('Status')->find('css', 'option[value="upcoming"]')->getAttribute('selected'));
+    $this->assertNull($this->getSession()->getPage()->findField('Status')->find('css', 'option[value="past"]')->getAttribute('selected'));
+
+    // The "Clear filters" button also clears the default instead of
+    // re-applying it on the resulting clean URL.
+    $this->drupalGet('/facets-form-test');
+    $assert->pageTextNotContains('the node from the past');
+    $this->getSession()->getPage()->pressButton('Clear filters');
+    $assert->pageTextContains('the node from the past');
+    $assert->pageTextContains('the node from the future');
+    $this->assertStringContainsString('cleared[0]=' . $facet->id(), urldecode($this->getSession()->getCurrentUrl()));
   }
 
   /**

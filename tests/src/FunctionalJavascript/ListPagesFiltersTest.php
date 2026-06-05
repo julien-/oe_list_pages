@@ -246,17 +246,14 @@ class ListPagesFiltersTest extends WebDriverTestBase {
     $assert_session->linkNotExistsExact('test1');
     $assert_session->linkNotExistsExact('test2');
     $assert_session->linkNotExistsExact('Future');
-    // Past is showing up but it's not a link.
-    $assert_session->linkNotExistsExact('Past');
-    // We have a default status facet, configured to show Past items.
-    $spans = $this->getSession()->getPage()->findAll('css', '.field--name-extra-field-oe-list-page-selected-filtersnodeoe-list-page span');
-    $this->assertCount(2, $spans);
-    $actual_values = [];
-    foreach ($spans as $span) {
-      $this->assertFalse($span->has('css', 'a'));
-      $actual_values[] = $span->getText();
-    }
-    $this->assertEquals(['Period', 'Past'], $actual_values);
+    // The Past status is the default and currently the only active filter. It
+    // is now exposed as a removable link pointing to a "cleared" URL, so the
+    // default can be removed to show all results instead of being silently
+    // re-applied on the clean URL.
+    $this->assertSelectedFiltersLabels(['Period', 'Past']);
+    $assert_session->linkExistsExact('Past');
+    $past_link = $assert_session->elementExists('named', ['link', 'Past']);
+    $this->assertStringContainsString('cleared[0]=period', urldecode($past_link->getAttribute('href')));
 
     $this->getSession()->getPage()->selectFieldOption('Published', 'Yes', TRUE);
     $this->getSession()->getPage()->selectFieldOption('Select one', 'test1', TRUE);
@@ -418,6 +415,18 @@ class ListPagesFiltersTest extends WebDriverTestBase {
     $assert_session->linkNotExistsExact('BE');
     $assert_session->linkExistsExact('Belgium');
     $this->assertSelectedFiltersLabels(['Period', 'Body', 'Country']);
+
+    // Reload the list page and clear the default status by clicking its remove
+    // link. The default must not be re-applied: the Past filter disappears and
+    // the cleared state is recorded in the URL.
+    $this->drupalGet($node->toUrl());
+    $assert_session->linkExistsExact('Past');
+    $this->clickLink('Past');
+    $assert_session->pageTextContains('one yellow fruit');
+    $assert_session->pageTextContains('another yellow fruit');
+    $assert_session->linkNotExistsExact('Past');
+    $assert_session->linkNotExistsExact('Future');
+    $this->assertStringContainsString('cleared[0]=period', urldecode($this->getSession()->getCurrentUrl()));
   }
 
   /**

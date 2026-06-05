@@ -395,13 +395,15 @@ class ListBuilder implements ListBuilderInterface {
     if ($this->countTotalSelectedFilters($items) === 1) {
       // If we only have one selected filter, it means its URL will remove
       // all filters. However, it can also be the filter of a facet that uses
-      // a DefaultStatusProcessorInterface processor, in which case we need
-      // kill the URL and only display it as a label.
+      // a DefaultStatusProcessorInterface processor. In that case removing it
+      // via a clean URL would re-apply the default, so we point the remove
+      // link to a URL that explicitly marks the facet as cleared.
       $facet_id = key($items);
       $facet = $facets[$facet_id];
       if ($this->facetHasDefaultStatus($facet, reset($items[$facet_id]['items']))) {
+        $cleared_url = Url::fromRoute('<current>', [], ['query' => ['cleared' => [$facet_id]]]);
         foreach ($items as $facet_id => &$filters) {
-          $filters['items'][0]['url'] = NULL;
+          $filters['items'][0]['url'] = $cleared_url;
         }
       }
     }
