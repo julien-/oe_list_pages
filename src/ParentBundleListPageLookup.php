@@ -58,18 +58,14 @@ class ParentBundleListPageLookup {
   public function find(string $bundle, string $entity_type_id = 'node'): ?NodeInterface {
     $expected_source = $entity_type_id . ':' . $bundle;
 
-    // Find the node that owns an entity_meta carrying the matching source
-    // value. Only consider published, default-revision, default-translation
-    // nodes so the result is the canonical list page.
+    // Find the published list page node whose source field matches. In
+    // oe_list_pages 2.x the source is stored directly on the node, so we read
+    // the node field table instead of the (now removed) entity meta tables.
     $nid = $this->database->query(
-      'SELECT nr.emr_node_revision_target_id AS nid
-       FROM {entity_meta__oe_list_page_source} s
-       INNER JOIN {entity_meta_relation_revision__emr_meta_revision} mr
-         ON mr.emr_meta_revision_target_revision_id = s.revision_id
-       INNER JOIN {entity_meta_relation_revision__emr_node_revision} nr
-         ON nr.revision_id = mr.revision_id
+      'SELECT s.entity_id AS nid
+       FROM {node__oe_list_page_source} s
        INNER JOIN {node_field_data} n
-         ON n.vid = nr.emr_node_revision_target_revision_id AND n.status = 1
+         ON n.nid = s.entity_id AND n.status = 1
        WHERE s.oe_list_page_source_value = :source
        LIMIT 1',
       [':source' => $expected_source]
